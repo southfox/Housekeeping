@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
+#include "MainMenuScene.h"
 
 USING_NS_CC;
 
@@ -43,11 +43,57 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);
-
-    register_all_packages();
-
+    
+    auto fileUtils = FileUtils::getInstance();
+    auto screenSize = glview->getFrameSize();
+    std::vector<std::string> resDirOrders;
+    
+    // check which assets the devices requires
+    if (screenSize.width == 2048 || screenSize.height == 2048) // retina iPad
+    {
+        resDirOrders.push_back("ipadhd");
+        resDirOrders.push_back("ipad");
+        resDirOrders.push_back("iphonehd5");
+        resDirOrders.push_back("iphonehd");
+        resDirOrders.push_back("iphone");
+        
+        glview->setDesignResolutionSize(1536, 2048, ResolutionPolicy::NO_BORDER);
+    }
+    else if (screenSize.width == 1024 || screenSize.height == 1024) // non retina iPad
+    {
+        resDirOrders.push_back("ipad");
+        resDirOrders.push_back("iphonehd5");
+        resDirOrders.push_back("iphonehd");
+        resDirOrders.push_back("iphone");
+        
+        glview->setDesignResolutionSize(768, 1024, ResolutionPolicy::NO_BORDER);
+    }
+    else if (screenSize.width == 960 || screenSize.height == 960) // retina iPhone (5 and 5S)
+    {
+        resDirOrders.push_back("iphonehd");
+        resDirOrders.push_back("iphone");
+        
+        glview->setDesignResolutionSize(960, 960, ResolutionPolicy::NO_BORDER);
+    }
+    else // non retina iPhone and Android devices
+    {
+        if (screenSize.width > 1080) // android devices that have a high resolution
+        {
+            resDirOrders.push_back("iphonehd");
+            resDirOrders.push_back("iphone");
+            glview->setDesignResolutionSize(640, 960, ResolutionPolicy::NO_BORDER);
+        }
+        else // non retina iPhone and Android devices with lower resolutions
+        {
+            resDirOrders.push_back("iphone");
+            glview->setDesignResolutionSize(320, 480, ResolutionPolicy::NO_BORDER);
+        }
+    }
+    
+    fileUtils->setSearchPaths(resDirOrders);
+    
     // create a scene. it's an autorelease object
-    auto scene = HelloWorld::createScene();
+    auto scene = MainMenu::createScene();
 
     // run
     director->runWithScene(scene);
